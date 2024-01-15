@@ -3,12 +3,18 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/jsdom": "^21.1.6"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@jclem/assert": "^2.0.1"
+    "@jclem/assert": "^2.0.1",
+    "@mozilla/readability": "^0.5.0",
+    "jsdom": "^23.2.0",
+    "openai": "^4.24.7",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.3"
   }
 }
