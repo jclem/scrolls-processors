@@ -33,10 +33,58 @@ const SummarizeArticleInputs = z.object({
 
 type SummarizeArticleInputs = z.infer<typeof SummarizeArticleInputs>;
 
-if (item.data.startsWith("https://")) {
+if (!item.data.startsWith("https://")) {
+  process.exit(0);
+}
+
+if (item.type !== "draft") {
+  process.exit(0);
+}
+
+const url = item.data;
+const resp = await fetch(url);
+const contentType = resp.headers.get("content-type") ?? "";
+
+if (contentType.startsWith("image/")) {
+  await toImage(item);
+} else {
+  await toBookmark(item);
+}
+
+Bun.write(file, JSON.stringify(item));
+
+async function toImage(item: Item) {
+  item.type = "image";
+
+  const output = await openai.chat.completions.create({
+    model: "gpt-4-1106-preview",
+    stream: false,
+    max_tokens: 512,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: "Describe this image in one sentence.",
+          },
+          {
+            type: "image_url",
+            image_url: { url: url, detail: "high" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const description = output.choices.at(0)?.message.content ?? ""
+
+  item.metadata.description = description;
+}
+
+async function toBookmark(item: Item) {
   item.type = "bookmark";
 
-  const url = item.data;
   const html = await getPageHTML(url);
   const dom = new JSDOM(html);
   const article = new Readability(dom.window.document).parse();
@@ -48,7 +96,7 @@ if (item.data.startsWith("https://")) {
   const title = article.title;
   item.metadata.title = title;
 
-  const summarizeArticle = createSummarizeArticle(item)
+  const summarizeArticle = createSummarizeArticle(item);
 
   const runner = openai.beta.chat.completions.runTools({
     model: "gpt-4-1106-preview",
@@ -65,9 +113,10 @@ if (item.data.startsWith("https://")) {
         },
       },
     ],
-    messages: [{
-      role: 'system',
-      content: `Summarize an article by highlighting no more than 5
+    messages: [
+      {
+        role: "system",
+        content: `Summarize an article by highlighting no more than 5
       primary points, and one summary or conclusion for each point. A point
 name should be general and ideally no more than three words. Each
 summary should be specific, and drawn from and supported by content of
@@ -140,12 +189,11 @@ For a product review:
   ]
 }
 \`\`\`\n\n${article.content}`,
-    }],
+      },
+    ],
   });
 
-  await runner.done()
-
-  Bun.write(file, JSON.stringify(item))
+  await runner.done();
 }
 
 async function getPageHTML(url: string) {
