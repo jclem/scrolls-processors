@@ -57,7 +57,7 @@ async function toImage(item: Item) {
   item.type = "image";
 
   const output = await openai.chat.completions.create({
-    model: "gpt-4-1106-preview",
+    model: "gpt-4-vision-preview",
     stream: false,
     max_tokens: 512,
     messages: [
