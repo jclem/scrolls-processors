@@ -2,9 +2,10 @@ import { assert } from "@jclem/assert";
 import OpenAI from "openai";
 import { describeImage } from "./processors/describe-image";
 import { Item, halt, type ProcessorInput } from "./processors/processors";
+import { renderLocation } from "./processors/render-location";
 import { summarizeWebpage } from "./processors/summarize-webpage";
 
-const processors = [summarizeWebpage, describeImage];
+const processors = [summarizeWebpage, describeImage, renderLocation];
 
 const path = assert(Bun.argv.at(2));
 const file = Bun.file(path);

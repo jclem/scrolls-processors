@@ -6,6 +6,24 @@ export const Item = z.object({
   type: z.string(),
   data: z.string(),
   metadata: z.record(z.unknown()),
+  interface: z.array(
+    z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal("markdown"),
+        content: z.object({ markdown: z.string() }),
+      }),
+
+      z.object({
+        type: z.literal("image"),
+        content: z.object({ url: z.string(), alt: z.string() }),
+      }),
+
+      z.object({
+        type: z.literal("map"),
+        content: z.object({ latitude: z.number(), longitude: z.number() }),
+      }),
+    ]),
+  ),
   inserted_at: z.string(),
   updated_at: z.string(),
 });

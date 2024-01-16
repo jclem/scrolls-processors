@@ -34,5 +34,11 @@ export async function describeImage(
 
   const description = output.choices.at(0)?.message.content ?? "";
 
-  item.metadata.description = description;
+  item.interface.push({
+    type: "image",
+    content: {
+      url: item.data,
+      alt: description,
+    },
+  });
 }

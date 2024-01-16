@@ -145,8 +145,13 @@ async function getPageHTML(url: string) {
 
 function createSummarizeArticle(item: Item) {
   return function summarizeArticle(input: SummarizeArticleInputs) {
-    item.metadata.summary = input.keyPoints
-      .map((kp) => `- **${kp.point}**: ${kp.summary}`)
-      .join("\n");
+    item.interface.push({
+      type: "markdown",
+      content: {
+        markdown: input.keyPoints
+          .map((kp) => `- **${kp.point}**: ${kp.summary}`)
+          .join("\n"),
+      },
+    });
   };
 }
