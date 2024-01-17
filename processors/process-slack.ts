@@ -79,7 +79,7 @@ function isSlackPaste(content: string): boolean {
   // 4. A time.
   // 5. Other junk—this is fuzzy to allow for Slack relative times.
   return (
-    content.match(/\Ahttps:\/\/github\.slack\.com/) !== null &&
+    content.match(/^https:\/\/github\.slack\.com/) !== null &&
     content.match(/^Jonathan Clem\n(?::[^:]+:)?\s+\d/m) !== null
   );
 }
