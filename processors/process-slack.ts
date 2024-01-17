@@ -49,7 +49,5 @@ function isSlackPaste(content: string): boolean {
   // 3. Maybe a status icon.
   // 4. A time.
   // 5. Other junk—this is fuzzy to allow for Slack relative times.
-  const match = content.match(/^Jonathan Clem\n(?::[^:]+:)?\s+\d/m) !== null;
-  console.log("content", content, "match", match);
-  return match;
+  return content.match(/^Jonathan Clem\n(?::[^:]+:)?\s+\d/m) !== null;
 }
