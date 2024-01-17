@@ -66,7 +66,8 @@ Summarize the Slack conversation the user has pasted by extracting the
 conversation URL and then summarizing the top 3 key points of the conversation
 (including who made those points where appropriate).
 
-Also include relevant links using the provided inputs.`,
+Also include relevant links using the provided inputs. This would be nearly
+anything linked to in the conversation.`,
           parameters: zodToJsonSchema(
             SummarizeSlackConversationInputs,
           ) as JSONSchema,
