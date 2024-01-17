@@ -6,6 +6,7 @@ export const Item = z.object({
   type: z.string(),
   data: z.string(),
   metadata: z.record(z.unknown()),
+  hide_data: z.boolean(),
   interface: z.array(
     z.discriminatedUnion("type", [
       z.object({

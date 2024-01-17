@@ -145,6 +145,8 @@ async function getPageHTML(url: string) {
 
 function createSummarizeArticle(item: Item) {
   return function summarizeArticle(input: SummarizeArticleInputs) {
+    item.hide_data = true;
+
     item.interface.push({
       type: "markdown",
       content: {
