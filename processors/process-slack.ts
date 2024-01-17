@@ -95,7 +95,9 @@ function getSummarizeSlackConversation(item: Item) {
     item.interface.push({
       type: "markdown",
       content: {
-        markdown: `# Slack Conversation: [${input.title}](${input.url})
+        markdown: `# [${input.title}](${input.url})
+
+<small>from Slack</small>
 
 ${input.keyPoints.map((kp) => `- **${kp.point}**: ${kp.summary}`).join("\n")}`,
       },
