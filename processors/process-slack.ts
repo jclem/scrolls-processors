@@ -1,4 +1,28 @@
-import type { ProcessorInput, halt } from "./processors";
+import type { JSONSchema } from "openai/lib/jsonschema.mjs";
+import { z } from "zod";
+import zodToJsonSchema from "zod-to-json-schema";
+import type { Item, ProcessorInput, halt } from "./processors";
+
+const SummarizeSlackConversationInputs = z.object({
+  url: z.string().describe("The URL of the Slack conversation"),
+
+  title: z.string().describe("A name for the Slack conversation"),
+
+  keyPoints: z
+    .array(
+      z
+        .object({
+          point: z.string().describe("A key point from the Slack conversation"),
+          summary: z.string().describe("A summary of the key point"),
+        })
+        .describe("A key point from the Slack conversation and its summary"),
+    )
+    .describe("The key points from the Slack conversation"),
+});
+
+type SummarizeSlackConversationInputs = z.infer<
+  typeof SummarizeSlackConversationInputs
+>;
 
 export async function summarizeSlackConversation(
   input: ProcessorInput,
@@ -11,36 +35,41 @@ export async function summarizeSlackConversation(
 
   item.type = "note";
 
-  const output = await openai.chat.completions.create({
-    model: "gpt-4-vision-preview",
-    stream: false,
-    max_tokens: 1024,
+  const runner = openai.beta.chat.completions.runTools({
+    model: "gpt-4-1106-preview",
+    tool_choice: {
+      type: "function",
+      function: { name: "summarizeSlackConversation" },
+    },
+    tools: [
+      {
+        type: "function",
+        function: {
+          function: getSummarizeSlackConversation(item),
+          parse: (args) =>
+            SummarizeSlackConversationInputs.parse(JSON.parse(args)),
+          description: `
+Summarize the Slack conversation the user has pasted by extracting the
+conversation URL and then summarizing the key points of the conversation
+(including who made those points where appropriate).`,
+          parameters: zodToJsonSchema(
+            SummarizeSlackConversationInputs,
+          ) as JSONSchema,
+        },
+      },
+    ],
     messages: [
       {
         role: "system",
         content: `
-Summarize the Slack conversation the user has pasted. Make sure and capture the
-names of the participants, and a brief (one or two sentences) overview of what
-is being discussed.
-
-You may use Markdown in your output.`.trim(),
+Summarize the Slack conversation the user has pasted. Capture the URL and key
+points. You may use Markdown in your key points content.`.trim(),
       },
       { role: "user", content: input.item.data },
     ],
   });
 
-  const markdown = output.choices.at(0)?.message.content?.trim() ?? "";
-
-  if (markdown === "") {
-    return;
-  }
-
-  item.interface.push({
-    type: "markdown",
-    content: {
-      markdown,
-    },
-  });
+  await runner.done();
 }
 
 function isSlackPaste(content: string): boolean {
@@ -49,5 +78,23 @@ function isSlackPaste(content: string): boolean {
   // 3. Maybe a status icon.
   // 4. A time.
   // 5. Other junk—this is fuzzy to allow for Slack relative times.
-  return content.match(/^Jonathan Clem\n(?::[^:]+:)?\s+\d/m) !== null;
+  return (
+    content.match(/\Ahttps:\/\/github\.slack\.com/) !== null &&
+    content.match(/^Jonathan Clem\n(?::[^:]+:)?\s+\d/m) !== null
+  );
+}
+
+function getSummarizeSlackConversation(item: Item) {
+  return function summarizeSlackConversation(
+    input: SummarizeSlackConversationInputs,
+  ) {
+    item.interface.push({
+      type: "markdown",
+      content: {
+        markdown: `# Slack Conversation: [${input.title}](${input.url})
+
+${input.keyPoints.map((kp) => `- **${kp.point}**: ${kp.summary}`).join("\n")}`,
+      },
+    });
+  };
 }
