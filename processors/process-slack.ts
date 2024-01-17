@@ -18,6 +18,19 @@ const SummarizeSlackConversationInputs = z.object({
         .describe("A key point from the Slack conversation and its summary"),
     )
     .describe("The key points from the Slack conversation"),
+
+  links: z
+    .array(
+      z
+        .object({
+          url: z.string().describe("The link URL"),
+          title: z.string().describe("The link title"),
+        })
+        .describe("A link relevant to the conversation"),
+    )
+    .describe(
+      "The links relevant to the conversation (but not the Slack conversation itself)",
+    ),
 });
 
 type SummarizeSlackConversationInputs = z.infer<
@@ -50,8 +63,10 @@ export async function summarizeSlackConversation(
             SummarizeSlackConversationInputs.parse(JSON.parse(args)),
           description: `
 Summarize the Slack conversation the user has pasted by extracting the
-conversation URL and then summarizing the key points of the conversation
-(including who made those points where appropriate).`,
+conversation URL and then summarizing the top 3 key points of the conversation
+(including who made those points where appropriate).
+
+Also include relevant links using the provided inputs.`,
           parameters: zodToJsonSchema(
             SummarizeSlackConversationInputs,
           ) as JSONSchema,
@@ -99,7 +114,17 @@ function getSummarizeSlackConversation(item: Item) {
 
 <small>from Slack</small>
 
-${input.keyPoints.map((kp) => `- **${kp.point}**: ${kp.summary}`).join("\n")}`,
+## Key Points
+
+${input.keyPoints.map((kp) => `- **${kp.point}**: ${kp.summary}`).join("\n")}
+
+${
+  input.links.length > 0
+    ? `## Relevant Links
+
+${input.links.map((link) => `- [${link.title}](${link.url})`).join("\n")}`
+    : ""
+}`,
       },
     });
   };
