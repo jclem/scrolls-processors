@@ -3,7 +3,7 @@ import { JSDOM } from "jsdom";
 import type { JSONSchema } from "openai/lib/jsonschema.mjs";
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
-import type { Item, ProcessorInput, halt } from "./processors";
+import { halt, type Item, type ProcessorInput } from "./processors";
 
 const SummarizeArticleInputs = z.object({
   keyPoints: z.array(

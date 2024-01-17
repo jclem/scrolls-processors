@@ -7,10 +7,10 @@ import { renderLocation } from "./processors/render-location";
 import { summarizeWebpage } from "./processors/summarize-webpage";
 
 const processors = [
+  summarizeSlackConversation,
   summarizeWebpage,
   describeImage,
   renderLocation,
-  summarizeSlackConversation,
 ];
 
 const path = assert(Bun.argv.at(2));
