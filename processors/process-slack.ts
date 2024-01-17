@@ -88,6 +88,8 @@ function getSummarizeSlackConversation(item: Item) {
   return function summarizeSlackConversation(
     input: SummarizeSlackConversationInputs,
   ) {
+    item.hide_data = true;
+
     item.interface.push({
       type: "markdown",
       content: {
